@@ -3,7 +3,8 @@ before_install:
   
 install:
   - sudo apt-get install -y ffmpeg libavcodec-extra-53
-
+  - bundle install
+  
 language: ruby
 
 rvm:
