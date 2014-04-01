@@ -1,4 +1,4 @@
-# Rtrack
+# Rtrack [![Build Status](https://travis-ci.org/marcwebbie/rtrack.svg?branch=master)](https://travis-ci.org/marcwebbie/rtrack)
 
 RTrack is an object-oriented wrapper around ffmpeg to manipulate audiofiles easily from ruby code.
 
