@@ -1,3 +1,9 @@
+before_install:
+  - sudo apt-get update --fix-missing
+  
+install:
+  - sudo apt-get install -y ffmpeg libavcodec-extra-53
+
 language: ruby
 
 rvm:
