@@ -1,3 +1,4 @@
+require 'tempfile'
 
 module RTrack
   class Transcoder
@@ -7,7 +8,7 @@ module RTrack
     def self._clean_output output
       output.encode('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
     end
-    
+
     def self.bin
       @@bin
     end
@@ -23,34 +24,41 @@ module RTrack
       rescue NoMethodError
         raise StandardError, "Couldn't parse duration from transcoder output"
       end
-      
+
       mobj = time_string.match(/(?<hours>\d+):(?<mins>\d+):(?<secs>\d+)\.(?<msecs>\d+)/)
       hours = mobj["hours"].to_i
-      mins = mobj["mins"].to_i 
+      mins = mobj["mins"].to_i
       secs = mobj["secs"].to_i
       msecs = mobj["msecs"].ljust(3, "0").to_i
-      
+
       to_milliseconds hours, mins, secs, msecs
     end
 
-    def self.to_wave(infile_path, wavefile_path)
-      cmd = "#{self::BIN} -y -i #{infile_path} -f wav #{wavefile_path} 2>&1"
-      output = `#{cmd}`
-      self.parse_duration output
+    def self.to_wave(infile_path)
+      wavefile = Tempfile.new ['','.wav']
+      `#{self::BIN} -y -i #{infile_path} -ar 44100 -ac 2 -f wav  #{wavefile.path} 2>&1`
+      wavefile
     end
 
-    def self.to_slice(infile_path, wavefile_path, start, to)
-      cmd = "#{self::BIN} -y -i #{infile_path} -ss #{start} -to #{to} -f wav #{wavefile_path} 2>&1"
-      output = `#{cmd}`
-      self.parse_duration output
+    def self.to_slice(infile_path, start, to)
+      wavefile = Tempfile.new ['','.wav']
+      `#{self::BIN} -y -i #{infile_path} -ss #{start} -to #{to} -f wav #{wavefile} 2>&1`
+      wavefile
     end
 
-    def self.concat(media_one, media_two)
+    def self.concat(track_one, track_two)
       new_wavefile = Tempfile.new ['','.wav']
-      cmd = "#{self::BIN} -y -i #{media_one} -i #{media_two} -filter_complex '[0:0][1:0]concat=n=2:v=0:a=1[out]' -map '[out]' #{new_wavefile.path} 2>&1"
-      output = `#{cmd}`
-      duration = self.parse_duration output 
-      {"wavefile" => new_wavefile, "duration" => duration}
+      sample_size = 4096
+      tracks = [track_one, track_two]
+
+      WaveFile::Writer.new(new_wavefile.path, WaveFile::Format.new(:stereo, :pcm_16, 44100)) do |writer|
+        tracks.each do |track|
+          track.wavefile.each_buffer(sample_size) do |buffer|
+            writer.write(buffer)
+          end
+        end
+      end
+      new_wavefile.path
     end
 
     def self.is_media?(filepath)

@@ -19,7 +19,7 @@ class Audiorack_Tests < Test::Unit::TestCase
     assert_raises(StandardError) do
       test_track = AudioTrack.from_file "test/data/wrong_path.mp3"
       assert_not_nil test_track
-    end    
+    end
   end
 
   def test_audio_track_has_a_not_nil_wavefile_from_given_infile
@@ -27,22 +27,14 @@ class Audiorack_Tests < Test::Unit::TestCase
     assert_not_nil test_track.wavefile
   end
 
-  def test_from_file_returns_audio_track_with_valid_wavefile
-    test_track = AudioTrack.from_file "test/data/test.mp3"
-    wavefile = test_track.wavefile
-    assert_respond_to wavefile, "path"
-    assert_equal File.exists?(wavefile.path), true
-    assert_equal wavefile.path.end_with?(".wav"), true
-  end
-
   def test_from_file_returns_audio_track_with_expected_duration
     test_track = AudioTrack.from_file "test/data/test.mp3"
-    expected_duration = 10040
+    expected_duration = 10009
     assert_respond_to test_track, "duration"
     assert_equal expected_duration, test_track.duration
 
     test_track = AudioTrack.from_file "test/data/test2.mp3"
-    expected_duration = 5040
+    expected_duration = 5016
     assert_respond_to test_track, "duration"
     assert_equal expected_duration, test_track.duration
   end
@@ -57,9 +49,9 @@ class Audiorack_Tests < Test::Unit::TestCase
     assert_respond_to @track, "[]"
     expected_seconds = Random.rand(1..10)
 
-    slice = AudioTrack.from_file(@track.path)[0..expected_seconds]
+    slice = AudioTrack.from_file("test/data/test.mp3")[0..expected_seconds]
     assert_equal slice.seconds, expected_seconds
-    slice = AudioTrack.from_file(@track.path)[0...expected_seconds]
+    slice = AudioTrack.from_file("test/data/test.mp3")[0...expected_seconds]
     assert_equal slice.seconds, expected_seconds-1
   end
 
@@ -79,7 +71,8 @@ class Audiorack_Tests < Test::Unit::TestCase
 
     assert_respond_to track_one, "+"
     track_three = track_one + track_two
-    assert_equal track_three.seconds, track_one.seconds + track_two.seconds
+    expected_duration = 15026
+    assert_equal expected_duration, track_three.duration
   end
 
   def test_export_track
